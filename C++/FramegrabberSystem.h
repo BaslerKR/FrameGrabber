@@ -38,7 +38,7 @@ public:
         bool supportsCameraControl = false;
     };
 
-    FramegrabberSystem();
+    explicit FramegrabberSystem(bool discoverBoardsOnCreate = true);
     ~FramegrabberSystem();
 
     FramegrabberSystem(const FramegrabberSystem&) = delete;
@@ -48,6 +48,7 @@ public:
     [[nodiscard]] std::vector<std::string> getFramegrabberList();
     [[nodiscard]] std::vector<std::string> getCachedFramegrabberList() const;
     [[nodiscard]] std::vector<BoardInfo> getCachedBoardInfo() const;
+    void setCachedBoardInfo(std::vector<BoardInfo> boards);
     [[nodiscard]] bool isAccessible(const std::string& boardName) const;
     [[nodiscard]] std::string getBoardAppletPath(const std::string& boardName) const;
     [[nodiscard]] std::string resolveLoadableAppletPath(

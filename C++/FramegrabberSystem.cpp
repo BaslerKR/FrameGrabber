@@ -298,7 +298,7 @@ std::string FramegrabberSystem::BoardInfo::displayName() const
     return name + " (" + serial + ")";
 }
 
-FramegrabberSystem::FramegrabberSystem()
+FramegrabberSystem::FramegrabberSystem(const bool discoverBoardsOnCreate)
 {
     _initialized = Fg_InitLibraries(configuredFramegrabberSdkRoot()) == FG_OK;
     if (!_initialized)
@@ -308,7 +308,7 @@ FramegrabberSystem::FramegrabberSystem()
     }
 
     syslog("Library initialization succeeded.");
-    updateFramegrabberList();
+    if (discoverBoardsOnCreate) updateFramegrabberList();
 }
 
 FramegrabberSystem::~FramegrabberSystem()
@@ -396,6 +396,12 @@ std::vector<FramegrabberSystem::BoardInfo> FramegrabberSystem::getCachedBoardInf
 {
     std::lock_guard<std::mutex> lock(_mutex);
     return _boards;
+}
+
+void FramegrabberSystem::setCachedBoardInfo(std::vector<BoardInfo> boards)
+{
+    std::lock_guard<std::mutex> lock(_mutex);
+    _boards = std::move(boards);
 }
 
 bool FramegrabberSystem::isAccessible(const std::string& boardName) const
