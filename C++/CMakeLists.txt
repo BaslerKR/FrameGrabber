@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(Framegrabber LANGUAGES C CXX)
 
-option(FRAMEGRABBER_BUILD_QT_WIDGET "Build the optional Qt control widget." ON)
+option(FRAMEGRABBER_BUILD_QT_WIDGET "Build the optional Qt control widget." OFF)
 option(FRAMEGRABBER_BUILD_GRAPHICSENGINE_ADAPTER
     "Build the optional Framegrabber-to-GraphicsEngine adapter target."
     OFF
@@ -72,10 +72,6 @@ if(SISOPLATFORM_DEFINITIONS)
 endif()
 
 if(FRAMEGRABBER_BUILD_QT_WIDGET)
-    set(CMAKE_AUTOMOC ON)
-    set(CMAKE_AUTORCC ON)
-    set(CMAKE_AUTOUIC ON)
-
     if(TARGET Qt6::Core)
         set(FRAMEGRABBER_QT_VERSION_MAJOR 6)
     elseif(TARGET Qt5::Core)
@@ -90,24 +86,37 @@ if(FRAMEGRABBER_BUILD_QT_WIDGET)
         COMPONENTS Core Gui Widgets Xml
     )
 
-    target_sources(Framegrabber PRIVATE
+    add_library(FramegrabberQtWidget STATIC
         Utility/Qt/QFramegrabberWidget.h
         Utility/Qt/QFramegrabberWidget.cpp
     )
-    target_link_libraries(Framegrabber
+    add_library(Framegrabber::QtWidget ALIAS FramegrabberQtWidget)
+    set_target_properties(FramegrabberQtWidget PROPERTIES
+        AUTOMOC ON
+        AUTORCC ON
+        AUTOUIC ON
+    )
+    target_compile_features(FramegrabberQtWidget PUBLIC cxx_std_17)
+    target_include_directories(FramegrabberQtWidget
         PUBLIC
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+    target_link_libraries(FramegrabberQtWidget
+        PUBLIC
+            Framegrabber::Framegrabber
             Qt${FRAMEGRABBER_QT_VERSION_MAJOR}::Core
             Qt${FRAMEGRABBER_QT_VERSION_MAJOR}::Gui
             Qt${FRAMEGRABBER_QT_VERSION_MAJOR}::Widgets
             Qt${FRAMEGRABBER_QT_VERSION_MAJOR}::Xml
     )
+    message(STATUS "[Framegrabber] Framegrabber::QtWidget enabled.")
 endif()
 
 if(FRAMEGRABBER_BUILD_GRAPHICSENGINE_ADAPTER)
-    if(NOT TARGET GraphicsEngine::GraphicsEngine)
+    if(NOT TARGET GraphicsEngine::Contracts)
         message(FATAL_ERROR
             "[Framegrabber] FRAMEGRABBER_BUILD_GRAPHICSENGINE_ADAPTER=ON requires "
-            "GraphicsEngine::GraphicsEngine. Add GraphicsEngine first or disable the adapter."
+            "GraphicsEngine::Contracts. Add GraphicsEngine first or disable the adapter."
         )
     endif()
 
@@ -127,7 +136,7 @@ if(FRAMEGRABBER_BUILD_GRAPHICSENGINE_ADAPTER)
     target_link_libraries(FramegrabberGraphicsEngineAdapter
         PUBLIC
             Framegrabber::Framegrabber
-            GraphicsEngine::GraphicsEngine
+            GraphicsEngine::Contracts
     )
     message(STATUS "[Framegrabber] Framegrabber::GraphicsEngineAdapter enabled.")
 endif()
