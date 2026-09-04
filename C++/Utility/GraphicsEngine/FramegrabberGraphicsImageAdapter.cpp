@@ -150,8 +150,11 @@ GraphicsImageFrameStream::GraphicsImageFrameStream(
         return;
     }
 
+    const auto callbackToken = _callbackGate.token();
     _grabCallbackId = _framegrabber->registerGrabCallback(
-        [this](const Framegrabber::Image& image, const std::size_t sequence) {
+        [this, callbackToken](const Framegrabber::Image& image, const std::size_t sequence) {
+            GraphicsFrameCallbackGate::Lease lease(callbackToken);
+            if (!lease) return;
             ReadyGuard ready(_framegrabber, image.dmaIndex);
             try
             {
@@ -177,9 +180,11 @@ GraphicsImageFrameStream::GraphicsImageFrameStream(
 
 GraphicsImageFrameStream::~GraphicsImageFrameStream()
 {
+    _callbackGate.beginShutdown();
     if (_framegrabber && _grabCallbackId != 0U)
     {
         _framegrabber->deregisterGrabCallback(_grabCallbackId);
     }
+    _callbackGate.waitForDrain();
 }
 }

@@ -24,6 +24,7 @@ public:
 private:
     Framegrabber* _framegrabber = nullptr;
     GraphicsFrameCallback _callback;
+    GraphicsFrameCallbackGate _callbackGate;
     Framegrabber::CallbackId _grabCallbackId = 0;
 };
 }
