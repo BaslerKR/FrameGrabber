@@ -8,7 +8,7 @@ Framegrabber is a C++17 acquisition library for Basler frame grabber boards. It 
 - Load applets and MCF configuration files.
 - Start every configured DMA channel and identify each image by `dmaIndex`.
 - Expose applet features and supported camera features through typed APIs.
-- Build an optional Qt control widget and an optional external scene adapter.
+- Build an optional Qt control widget and an optional external GraphicsFrame adapter.
 
 ## Requirements
 
@@ -40,7 +40,7 @@ target_link_libraries(qt_consumer PRIVATE Framegrabber::QtWidget)
 Enabling `FRAMEGRABBER_BUILD_QT_WIDGET` requires Qt Core, Gui, Widgets, and Xml.
 Configuration fails when the requested Qt components are unavailable.
 
-The optional scene adapter is disabled by default and requires a neutral scene-contract target before this module is configured; it does not require the visualization renderer.
+The optional GraphicsFrame adapter is disabled by default and requires the neutral GraphicsEngine contract target; it does not require the visualization renderer.
 
 ## Acquisition Contract
 

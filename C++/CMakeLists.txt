@@ -124,6 +124,7 @@ if(FRAMEGRABBER_BUILD_GRAPHICSENGINE_ADAPTER)
         Utility/GraphicsEngine/FramegrabberGraphicsImageAdapter.h
         Utility/GraphicsEngine/FramegrabberGraphicsImageAdapter.cpp
     )
+    find_package(Qt6 REQUIRED COMPONENTS Gui)
     add_library(
         Framegrabber::GraphicsEngineAdapter
         ALIAS FramegrabberGraphicsEngineAdapter
@@ -137,6 +138,7 @@ if(FRAMEGRABBER_BUILD_GRAPHICSENGINE_ADAPTER)
         PUBLIC
             Framegrabber::Framegrabber
             GraphicsEngine::Contracts
+            Qt6::Gui
     )
     message(STATUS "[Framegrabber] Framegrabber::GraphicsEngineAdapter enabled.")
 endif()
