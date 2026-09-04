@@ -1,4 +1,8 @@
 #include "FramegrabberGraphicsImageAdapter.h"
+#include "FramegrabberSystem.h"
+
+#include <exception>
+#include <utility>
 
 namespace
 {
@@ -118,5 +122,64 @@ GraphicsImage wrapImage(
     frame.bitAlignment = graphicsBitAlignment(image.bitAlignment);
     frame.frameSequence = frameSeq;
     return frame;
+}
+
+namespace {
+
+class ReadyGuard final
+{
+public:
+    ReadyGuard(Framegrabber* framegrabber, const unsigned int dmaIndex) noexcept
+        : _framegrabber(framegrabber), _dmaIndex(dmaIndex) {}
+    ~ReadyGuard() { if (_framegrabber) _framegrabber->ready(_dmaIndex); }
+
+private:
+    Framegrabber* _framegrabber;
+    unsigned int _dmaIndex;
+};
+
+} // namespace
+
+GraphicsImageFrameStream::GraphicsImageFrameStream(
+    Framegrabber* framegrabber,
+    GraphicsFrameCallback callback)
+    : _framegrabber(framegrabber), _callback(std::move(callback))
+{
+    if (!_framegrabber || !_callback)
+    {
+        return;
+    }
+
+    _grabCallbackId = _framegrabber->registerGrabCallback(
+        [this](const Framegrabber::Image& image, const std::size_t sequence) {
+            ReadyGuard ready(_framegrabber, image.dmaIndex);
+            try
+            {
+                GraphicsImage graphicsImage = wrapImage(image, sequence);
+                if (!graphicsImage.isValid()) return;
+
+                GraphicsFrame frame;
+                frame.setImage(std::move(graphicsImage));
+                _callback(std::move(frame), image.dmaIndex);
+            }
+            catch (const std::exception& error)
+            {
+                FramegrabberSystem::syslog(
+                    std::string("Framegrabber GraphicsFrame callback failed: ") + error.what(), true);
+            }
+            catch (...)
+            {
+                FramegrabberSystem::syslog(
+                    "Framegrabber GraphicsFrame callback failed with an unknown exception.", true);
+            }
+        });
+}
+
+GraphicsImageFrameStream::~GraphicsImageFrameStream()
+{
+    if (_framegrabber && _grabCallbackId != 0U)
+    {
+        _framegrabber->deregisterGrabCallback(_grabCallbackId);
+    }
 }
 }

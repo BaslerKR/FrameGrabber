@@ -6,6 +6,7 @@ option(FRAMEGRABBER_BUILD_GRAPHICSENGINE_ADAPTER
     "Build the optional Framegrabber-to-GraphicsEngine adapter target."
     OFF
 )
+option(FRAMEGRABBER_BUILD_TESTS "Build focused Framegrabber adapter tests." OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -124,7 +125,6 @@ if(FRAMEGRABBER_BUILD_GRAPHICSENGINE_ADAPTER)
         Utility/GraphicsEngine/FramegrabberGraphicsImageAdapter.h
         Utility/GraphicsEngine/FramegrabberGraphicsImageAdapter.cpp
     )
-    find_package(Qt6 REQUIRED COMPONENTS Gui)
     add_library(
         Framegrabber::GraphicsEngineAdapter
         ALIAS FramegrabberGraphicsEngineAdapter
@@ -138,9 +138,23 @@ if(FRAMEGRABBER_BUILD_GRAPHICSENGINE_ADAPTER)
         PUBLIC
             Framegrabber::Framegrabber
             GraphicsEngine::Contracts
-            Qt6::Gui
     )
     message(STATUS "[Framegrabber] Framegrabber::GraphicsEngineAdapter enabled.")
+
+    if(FRAMEGRABBER_BUILD_TESTS)
+        enable_testing()
+        add_executable(framegrabber_graphics_image_adapter_test
+            Tests/GraphicsImageAdapterTest.cpp
+        )
+        target_link_libraries(framegrabber_graphics_image_adapter_test
+            PRIVATE
+                Framegrabber::GraphicsEngineAdapter
+        )
+        add_test(
+            NAME framegrabber_graphics_image_adapter_test
+            COMMAND framegrabber_graphics_image_adapter_test
+        )
+    endif()
 endif()
 
 message(STATUS "[Framegrabber] Basler Frame Grabber SDK root: ${BASLER_FG_SDK_DIR}")

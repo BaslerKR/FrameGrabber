@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Move DMA callback registration, ownership return, and GraphicsFrame conversion into the module adapter stream; the parent receives only owned GraphicsFrame values.
+- Keep the GraphicsFrame adapter target independent of Qt GUI.
 - Keep frame-grabber output on the canonical `GraphicsFrame` host boundary.
 - Split the opt-in Qt control panel into `Framegrabber::QtWidget`, leaving the default `Framegrabber::Framegrabber` target free of Qt dependencies.
 - Updated the optional scene adapter to consume a neutral scene-contract target without inheriting the visualization runtime; image conversion output is unchanged.
