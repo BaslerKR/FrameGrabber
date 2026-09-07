@@ -27,5 +27,55 @@ int main()
     assert(image.frameSequence == 9U);
     assert(image.data() == storage->data());
     assert(image.data()[3] == 4U);
+
+    auto wrapNative = [](const Framegrabber::PixelFormat pixelFormat,
+                         const GraphicsImagePixelFormat expected,
+                         const int width,
+                         const int height,
+                         const int stride,
+                         const int bitsPerPixel)
+    {
+        auto bytes = std::make_shared<std::vector<std::uint8_t>>(
+            static_cast<std::size_t>(stride) * static_cast<std::size_t>(height));
+        Framegrabber::Image input;
+        input.storage = std::shared_ptr<const std::uint8_t>(bytes, bytes->data());
+        input.size = bytes->size();
+        input.width = width;
+        input.height = height;
+        input.stride = stride;
+        input.bitsPerPixel = bitsPerPixel;
+        input.pixelFormat = pixelFormat;
+        input.bitAlignment = Framegrabber::BitAlignment::Packed;
+
+        const GraphicsImage wrapped = FramegrabberGraphicsImageAdapter::wrapImage(input, 3U);
+        assert(wrapped.isValid());
+        assert(wrapped.pixelFormat == expected);
+        assert(wrapped.data() == bytes->data());
+        assert(wrapped.width == width);
+        assert(wrapped.height == height);
+        assert(wrapped.stride == stride);
+    };
+
+    wrapNative(
+        Framegrabber::PixelFormat::BayerRG8,
+        GraphicsImagePixelFormat::BayerRG8,
+        4,
+        4,
+        4,
+        8);
+    wrapNative(
+        Framegrabber::PixelFormat::YCbCr422_8,
+        GraphicsImagePixelFormat::YCbCr422_8,
+        4,
+        2,
+        8,
+        16);
+    wrapNative(
+        Framegrabber::PixelFormat::RGB10Packed,
+        GraphicsImagePixelFormat::RGB10Packed,
+        4,
+        2,
+        15,
+        30);
     return 0;
 }

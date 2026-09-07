@@ -40,7 +40,7 @@ target_link_libraries(qt_consumer PRIVATE Framegrabber::QtWidget)
 Enabling `FRAMEGRABBER_BUILD_QT_WIDGET` requires Qt Core, Gui, Widgets, and Xml.
 Configuration fails when the requested Qt components are unavailable.
 
-The optional GraphicsFrame adapter is disabled by default and requires the neutral GraphicsEngine contract target; it does not require the visualization renderer.
+The optional GraphicsFrame adapter is disabled by default and requires the neutral GraphicsEngine contract target; it does not require the visualization renderer. Consumers that want owned frames include `FramegrabberGraphicsImageStream.h`; pixel-format conversion stays in `FramegrabberGraphicsImageAdapter`.
 
 ## Acquisition Contract
 

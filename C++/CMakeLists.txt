@@ -124,6 +124,8 @@ if(FRAMEGRABBER_BUILD_GRAPHICSENGINE_ADAPTER)
     add_library(FramegrabberGraphicsEngineAdapter STATIC
         Utility/GraphicsEngine/FramegrabberGraphicsImageAdapter.h
         Utility/GraphicsEngine/FramegrabberGraphicsImageAdapter.cpp
+        Utility/GraphicsEngine/FramegrabberGraphicsImageStream.h
+        Utility/GraphicsEngine/FramegrabberGraphicsImageStream.cpp
     )
     add_library(
         Framegrabber::GraphicsEngineAdapter
