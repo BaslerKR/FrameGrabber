@@ -1,4 +1,4 @@
-#include "FramegrabberGraphicsImageAdapter.h"
+#include "FramegrabberGraphicsFrameAdapter.h"
 
 #include <cassert>
 #include <cstdint>
@@ -21,7 +21,7 @@ int main()
     source.pixelFormat = Framegrabber::PixelFormat::Mono8;
     source.bitAlignment = Framegrabber::BitAlignment::Packed;
 
-    const GraphicsImage image = FramegrabberGraphicsImageAdapter::wrapImage(source, 9U);
+    const GraphicsImage image = FramegrabberGraphicsFrameAdapter::wrapImage(source, 9U);
     assert(image.isValid());
     assert(image.pixelFormat == GraphicsImagePixelFormat::Mono8);
     assert(image.frameSequence == 9U);
@@ -47,7 +47,7 @@ int main()
         input.pixelFormat = pixelFormat;
         input.bitAlignment = Framegrabber::BitAlignment::Packed;
 
-        const GraphicsImage wrapped = FramegrabberGraphicsImageAdapter::wrapImage(input, 3U);
+        const GraphicsImage wrapped = FramegrabberGraphicsFrameAdapter::wrapImage(input, 3U);
         assert(wrapped.isValid());
         assert(wrapped.pixelFormat == expected);
         assert(wrapped.data() == bytes->data());

@@ -1,6 +1,11 @@
 ## Unreleased
 
-- Publish GraphicsFrame through `FramegrabberGraphicsImageStream`; the converter header stays in the adapter translation unit.
+- Link `Playground::DevicePlugin` for the `IDevicePlugin` MODULE.
+- Own package identity in `Utility/PlaygroundAdapter/Package/Package.cmake`; the host emits `plugin.json` from `DevicePluginPackage.h`.
+- Keep the session source controller in `Utility/PlaygroundAdapter/Source` as `FramegrabberSourceController`.
+- Declare the Playground plugin runtime payload from this module; the host copies it into the package.
+- Move the GraphicsFrame stream/adapter into `Utility/PlaygroundAdapter` as `Framegrabber::PlaygroundAdapter`, and rename the stream/converter to the GraphicsFrame contract.
+- Publish GraphicsFrame through `FramegrabberGraphicsFrameStream`; the converter header stays in the adapter translation unit.
 
 - Drain in-flight GraphicsFrame adapter callbacks before stream destruction and cover the shared callback gate contract.
 - Move DMA callback registration, ownership return, and GraphicsFrame conversion into the module adapter stream; the parent receives only owned GraphicsFrame values.

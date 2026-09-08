@@ -1,4 +1,4 @@
-#include "FramegrabberGraphicsImageAdapter.h"
+#include "FramegrabberGraphicsFrameAdapter.h"
 
 namespace
 {
@@ -100,7 +100,7 @@ namespace
 }
 }
 
-namespace FramegrabberGraphicsImageAdapter
+namespace FramegrabberGraphicsFrameAdapter
 {
 GraphicsImage wrapImage(
     const Framegrabber::Image& image,

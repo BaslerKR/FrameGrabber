@@ -2,8 +2,12 @@ cmake_minimum_required(VERSION 3.16)
 project(Framegrabber LANGUAGES C CXX)
 
 option(FRAMEGRABBER_BUILD_QT_WIDGET "Build the optional Qt control widget." OFF)
-option(FRAMEGRABBER_BUILD_GRAPHICSENGINE_ADAPTER
-    "Build the optional Framegrabber-to-GraphicsEngine adapter target."
+option(FRAMEGRABBER_BUILD_PLAYGROUND_ADAPTER
+    "Build the optional Framegrabber Playground adapter target."
+    OFF
+)
+option(FRAMEGRABBER_BUILD_PLAYGROUND_PLUGIN
+    "Build the Framegrabber Playground device plugin MODULE."
     OFF
 )
 option(FRAMEGRABBER_BUILD_TESTS "Build focused Framegrabber adapter tests." OFF)
@@ -113,50 +117,117 @@ if(FRAMEGRABBER_BUILD_QT_WIDGET)
     message(STATUS "[Framegrabber] Framegrabber::QtWidget enabled.")
 endif()
 
-if(FRAMEGRABBER_BUILD_GRAPHICSENGINE_ADAPTER)
+if(FRAMEGRABBER_BUILD_PLAYGROUND_ADAPTER)
     if(NOT TARGET GraphicsEngine::Contracts)
         message(FATAL_ERROR
-            "[Framegrabber] FRAMEGRABBER_BUILD_GRAPHICSENGINE_ADAPTER=ON requires "
+            "[Framegrabber] FRAMEGRABBER_BUILD_PLAYGROUND_ADAPTER=ON requires "
             "GraphicsEngine::Contracts. Add GraphicsEngine first or disable the adapter."
         )
     endif()
 
-    add_library(FramegrabberGraphicsEngineAdapter STATIC
-        Utility/GraphicsEngine/FramegrabberGraphicsImageAdapter.h
-        Utility/GraphicsEngine/FramegrabberGraphicsImageAdapter.cpp
-        Utility/GraphicsEngine/FramegrabberGraphicsImageStream.h
-        Utility/GraphicsEngine/FramegrabberGraphicsImageStream.cpp
+    add_library(FramegrabberPlaygroundAdapter STATIC
+        Utility/PlaygroundAdapter/FramegrabberGraphicsFrameAdapter.h
+        Utility/PlaygroundAdapter/FramegrabberGraphicsFrameAdapter.cpp
+        Utility/PlaygroundAdapter/FramegrabberGraphicsFrameStream.h
+        Utility/PlaygroundAdapter/FramegrabberGraphicsFrameStream.cpp
     )
     add_library(
-        Framegrabber::GraphicsEngineAdapter
-        ALIAS FramegrabberGraphicsEngineAdapter
+        Framegrabber::PlaygroundAdapter
+        ALIAS FramegrabberPlaygroundAdapter
     )
-    target_compile_features(FramegrabberGraphicsEngineAdapter PUBLIC cxx_std_17)
-    target_include_directories(FramegrabberGraphicsEngineAdapter
+    target_compile_features(FramegrabberPlaygroundAdapter PUBLIC cxx_std_17)
+    target_include_directories(FramegrabberPlaygroundAdapter
         PUBLIC
-            "${CMAKE_CURRENT_SOURCE_DIR}/Utility/GraphicsEngine"
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/Utility/PlaygroundAdapter"
     )
-    target_link_libraries(FramegrabberGraphicsEngineAdapter
+    target_link_libraries(FramegrabberPlaygroundAdapter
         PUBLIC
             Framegrabber::Framegrabber
             GraphicsEngine::Contracts
     )
-    message(STATUS "[Framegrabber] Framegrabber::GraphicsEngineAdapter enabled.")
+    message(STATUS "[Framegrabber] Framegrabber::PlaygroundAdapter enabled.")
 
     if(FRAMEGRABBER_BUILD_TESTS)
         enable_testing()
         add_executable(framegrabber_graphics_image_adapter_test
-            Tests/GraphicsImageAdapterTest.cpp
+            Utility/PlaygroundAdapter/Tests/GraphicsFrameAdapterTest.cpp
         )
         target_link_libraries(framegrabber_graphics_image_adapter_test
             PRIVATE
-                Framegrabber::GraphicsEngineAdapter
+                Framegrabber::PlaygroundAdapter
         )
         add_test(
             NAME framegrabber_graphics_image_adapter_test
             COMMAND framegrabber_graphics_image_adapter_test
         )
     endif()
+endif()
+
+if(FRAMEGRABBER_BUILD_PLAYGROUND_PLUGIN)
+    if(NOT FRAMEGRABBER_BUILD_PLAYGROUND_ADAPTER)
+        message(FATAL_ERROR
+            "[Framegrabber] FRAMEGRABBER_BUILD_PLAYGROUND_PLUGIN=ON requires "
+            "FRAMEGRABBER_BUILD_PLAYGROUND_ADAPTER."
+        )
+    endif()
+    if(NOT FRAMEGRABBER_BUILD_QT_WIDGET)
+        message(FATAL_ERROR
+            "[Framegrabber] FRAMEGRABBER_BUILD_PLAYGROUND_PLUGIN=ON requires "
+            "FRAMEGRABBER_BUILD_QT_WIDGET."
+        )
+    endif()
+    if(NOT TARGET Playground::DevicePlugin)
+        message(FATAL_ERROR
+            "[Framegrabber] FRAMEGRABBER_BUILD_PLAYGROUND_PLUGIN=ON requires "
+            "Playground::DevicePlugin."
+        )
+    endif()
+    if(NOT TARGET Resources::Resources)
+        message(FATAL_ERROR
+            "[Framegrabber] FRAMEGRABBER_BUILD_PLAYGROUND_PLUGIN=ON requires "
+            "Resources::Resources."
+        )
+    endif()
+    if(NOT TARGET Qt6::Widgets)
+        message(FATAL_ERROR
+            "[Framegrabber] FRAMEGRABBER_BUILD_PLAYGROUND_PLUGIN=ON requires Qt 6."
+        )
+    endif()
+    find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGL OpenGLWidgets Concurrent)
+
+    add_library(FramegrabberPlugin MODULE
+        Utility/PlaygroundAdapter/Plugin/FramegrabberPlugin.cpp
+        Utility/PlaygroundAdapter/Source/FramegrabberSourceController.h
+        Utility/PlaygroundAdapter/Source/FramegrabberSourceController.cpp
+    )
+    set_target_properties(FramegrabberPlugin PROPERTIES
+        PREFIX ""
+        OUTPUT_NAME FramegrabberPlugin
+        AUTOMOC ON
+        PLAYGROUND_PLUGIN_PACKAGE
+            "${CMAKE_CURRENT_SOURCE_DIR}/Utility/PlaygroundAdapter/Package/Package.cmake"
+    )
+    target_compile_features(FramegrabberPlugin PRIVATE cxx_std_17)
+    target_include_directories(FramegrabberPlugin PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Utility/PlaygroundAdapter/Source"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Utility/PlaygroundAdapter/Plugin"
+    )
+    target_link_libraries(FramegrabberPlugin PRIVATE
+        Playground::DevicePlugin
+        Framegrabber::Framegrabber
+        Framegrabber::QtWidget
+        Framegrabber::PlaygroundAdapter
+        Resources::Resources
+        Qt6::Widgets
+        Qt6::OpenGL
+        Qt6::OpenGLWidgets
+        Qt6::Concurrent
+    )
+    include("${CMAKE_CURRENT_SOURCE_DIR}/Utility/PlaygroundAdapter/Package/RuntimeStaging.cmake")
+    framegrabber_prepare_playground_plugin_runtime(FramegrabberPlugin)
+    message(STATUS "[Framegrabber] FramegrabberPlugin enabled.")
 endif()
 
 message(STATUS "[Framegrabber] Basler Frame Grabber SDK root: ${BASLER_FG_SDK_DIR}")

@@ -1,6 +1,6 @@
-#include "FramegrabberGraphicsImageStream.h"
+#include "FramegrabberGraphicsFrameStream.h"
 
-#include "FramegrabberGraphicsImageAdapter.h"
+#include "FramegrabberGraphicsFrameAdapter.h"
 #include "FramegrabberSystem.h"
 
 #include <exception>
@@ -24,7 +24,7 @@ private:
 
 } // namespace
 
-class FramegrabberGraphicsImageStream::Impl final
+class FramegrabberGraphicsFrameStream::Impl final
 {
 public:
     Impl(Framegrabber* framegrabber, GraphicsFrameCallback callback);
@@ -40,7 +40,7 @@ private:
     Framegrabber::CallbackId _grabCallbackId = 0;
 };
 
-FramegrabberGraphicsImageStream::Impl::Impl(
+FramegrabberGraphicsFrameStream::Impl::Impl(
     Framegrabber* framegrabber,
     GraphicsFrameCallback callback)
     : _framegrabber(framegrabber), _callback(std::move(callback))
@@ -59,7 +59,7 @@ FramegrabberGraphicsImageStream::Impl::Impl(
             try
             {
                 GraphicsImage graphicsImage =
-                    FramegrabberGraphicsImageAdapter::wrapImage(image, sequence);
+                    FramegrabberGraphicsFrameAdapter::wrapImage(image, sequence);
                 if (!graphicsImage.isValid()) return;
 
                 GraphicsFrame frame;
@@ -79,7 +79,7 @@ FramegrabberGraphicsImageStream::Impl::Impl(
         });
 }
 
-FramegrabberGraphicsImageStream::Impl::~Impl()
+FramegrabberGraphicsFrameStream::Impl::~Impl()
 {
     _callbackGate.beginShutdown();
     if (_framegrabber && _grabCallbackId != 0U)
@@ -89,11 +89,11 @@ FramegrabberGraphicsImageStream::Impl::~Impl()
     _callbackGate.waitForDrain();
 }
 
-FramegrabberGraphicsImageStream::FramegrabberGraphicsImageStream(
+FramegrabberGraphicsFrameStream::FramegrabberGraphicsFrameStream(
     Framegrabber* framegrabber,
     GraphicsFrameCallback callback)
     : _impl(std::make_unique<Impl>(framegrabber, std::move(callback)))
 {
 }
 
-FramegrabberGraphicsImageStream::~FramegrabberGraphicsImageStream() = default;
+FramegrabberGraphicsFrameStream::~FramegrabberGraphicsFrameStream() = default;

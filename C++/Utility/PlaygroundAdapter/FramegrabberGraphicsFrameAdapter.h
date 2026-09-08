@@ -5,7 +5,7 @@
 
 #include <cstddef>
 
-namespace FramegrabberGraphicsImageAdapter
+namespace FramegrabberGraphicsFrameAdapter
 {
 /** Maps an owned Framegrabber image into a GraphicsEngine image value. */
 [[nodiscard]] GraphicsImage wrapImage(
